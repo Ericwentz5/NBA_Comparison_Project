@@ -3,6 +3,9 @@ title: "Milestone 2"
 format: html
 ---
 
+```{r}
+library(dplyr)
+```
 
 
 #Step 1
@@ -34,7 +37,7 @@ I have added all of the initial data, which is cleaned and good to go if we want
 
 ```{r}
 #source('run_api.R')
-all_stats_df <- read_csv('../data/PlayerStats.csv')
+#all_stats_df <- read_csv('../data/PlayerStats.csv')
 
 ```
 
