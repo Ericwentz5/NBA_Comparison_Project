@@ -96,23 +96,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>#Step 1: Create a team GitHub repository (indicate you want a README file when you create it) with a folder structure as follows:</p>
-<p>Complete!</p>
-<p>#Step 2: Create a .gitignore file.</p>
-<p>Complete!</p>
-<p>#Step 3: Add the instructor as a collaborator to your project GitHub repository. (GH username: bcheggeseth)</p>
-<p>Complete!</p>
-<p>#Step 4: Add a code chunk to the end of all of your .Rmd/.qmd documents with sessionInfo() Complete!</p>
-<p>#Step 5: In a Milestone2.qmd file, complete the steps in your plan from Milestone 1 (the plan with feedback from the instructional team).</p>
-<p>I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the “app”</p>
-<p>#Step 6: At the bottom of Milestone2.qmd, write a plan for further pursuing your 2-3 broad questions. Make sure that the steps in this plan are reasonable to complete in the next few weeks for Milestone 3 (which involves writing a short blog with initial data story (your results so far). You will receive feedback on this plan and will be expected to integrate this feedback for Milestone 3. Questions to think about as you develop this plan: More detailed plan for further pursuing these questions:</p>
-<p>So we have our cleaned data, now it is just about applying it in the context of our specific task with the project. The data involves the player, team, and 11 metrics. Our goal is to first consolidate those metrics into 5-6 key stats by combining similar stats. For example, points per game, paint points per game, and 3-pt efficiency could be consolidated into scoring efficiency. Then, our plan is to extrapolate that data and rate each player on each statistic on a scale of 1-100. As of now, we are now planning on using a min-max scale, where the player with the lowest stat in that category has a 1 and the highest has a 100. We will then apply a model to fit every person in between based on how close they are to the minimum/maximum statistic. Another task we have is to create the visualizations for each player. We have an idea for how this would look like. A comparable would be a soccer hexagon stat type of graphic. We are thinking of finding out a way to import picture of the players that will be displayed We will make visualizations by each stat and then also combined.<br>
-Our next step would be to create the layout for the slider. We would have the same 5-6 key stats and have a slider for each which would be on a scale of 1-100. Our end goal is such that anybody using the application can slide each of their stats according to how they play relative to their environment (high school, college, park, pickup, etc.). We will then have another model to match the input from the slider to the player that has the 5-6 stats that are closest to those inputs. We are still figuring out what kind of model we will use to get the information, but are happy to listen to inputs.</p>
-<p>#Here is the start of the regression model</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'dplyr'</code></pre>
@@ -127,159 +112,146 @@ Attaching package: 'dplyr'</code></pre>
 
     intersect, setdiff, setequal, union</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>api_key <span class="ot">&lt;-</span> <span class="st">"HSSl560bJq1tcEhYaXzoK4eH3yvmvLhY5kM9WIh7"</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>season_year <span class="ot">&lt;-</span> <span class="dv">2023</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>season_type <span class="ot">&lt;-</span> <span class="st">"REG"</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>nba_teams <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">team_id =</span> <span class="fu">c</span>(</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583eca2f-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Timberwolves</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ec773-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Cavaliers</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecae2-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Lakers</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ec97e-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Hornets</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecdfb-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Clippers</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583eccfa-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Celtics</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ec8d4-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Wizards</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecf50-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Mavericks</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ed102-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Nuggets</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecb8f-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Hawks</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecefd-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Bucks</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ec5fd-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Bulls</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583eca88-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Grizzlies</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecea6-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Heat</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecc9a-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Pelicans</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ece50-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Jazz</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ec7cd-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Pacers</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecda6-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Raptors</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ed157-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Magic</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecd4f-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Spurs</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ed0ac-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Kings</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecfa8-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Suns</span></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ecfff-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Thunder</span></span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ed056-fb46-11e1-82cb-f4ce4684ea4c"</span>, <span class="co"># Trail Blazers</span></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">"583ec825-fb46-11e1-82cb-f4ce4684ea4c"</span> <span class="co"># Warriors</span></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">alias =</span> <span class="fu">c</span>(</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MIN"</span>, <span class="co"># Timberwolves</span></span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    <span class="st">"CLE"</span>, <span class="co"># Cavaliers</span></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LAL"</span>, <span class="co"># Lakers</span></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">"CHA"</span>, <span class="co"># Hornets</span></span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LAC"</span>, <span class="co"># Clippers</span></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">"BOS"</span>, <span class="co"># Celtics</span></span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"WAS"</span>, <span class="co"># Wizards</span></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">"DAL"</span>, <span class="co"># Mavericks</span></span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">"DEN"</span>, <span class="co"># Nuggets</span></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ATL"</span>, <span class="co"># Hawks</span></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MIL"</span>, <span class="co"># Bucks</span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="st">"CHI"</span>, <span class="co"># Bulls</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MEM"</span>, <span class="co"># Grizzlies</span></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MIA"</span>, <span class="co"># Heat</span></span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="st">"NOP"</span>, <span class="co"># Pelicans</span></span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UTA"</span>, <span class="co"># Jazz</span></span>
-<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="st">"IND"</span>, <span class="co"># Pacers</span></span>
-<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="st">"TOR"</span>, <span class="co"># Raptors</span></span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ORL"</span>, <span class="co"># Magic</span></span>
-<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="st">"SAS"</span>, <span class="co"># Spurs</span></span>
-<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    <span class="st">"SAC"</span>, <span class="co"># Kings</span></span>
-<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">"PHX"</span>, <span class="co"># Suns</span></span>
-<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="st">"OKC"</span>, <span class="co"># Thunder</span></span>
-<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    <span class="st">"POR"</span>, <span class="co"># Trail Blazers</span></span>
-<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GSW"</span> <span class="co"># Warriors</span></span>
-<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats   1.0.0     ✔ readr     2.1.5
+✔ ggplot2   3.5.1     ✔ stringr   1.5.1
+✔ lubridate 1.9.3     ✔ tibble    3.2.1
+✔ purrr     1.0.2     ✔ tidyr     1.3.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+</div>
+<section id="step-1" class="level1">
+<h1>Step 1</h1>
+<p>Created the github repository is Complete</p>
+</section>
+<section id="step-2" class="level1">
+<h1>Step 2</h1>
+<p>Alro crushed the git ignore</p>
+</section>
+<section id="step-3" class="level1">
+<h1>Step 3</h1>
+<p>I have added you as a collaborator is complete</p>
+</section>
+<section id="step-4" class="level1">
+<h1>Step 4</h1>
+<p>I have added the sessionInfo() is complete</p>
+</section>
+<section id="step-5" class="level1">
+<h1>Step 5</h1>
+<p>I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the “app”</p>
+</section>
+<section id="here-is-the-start-of-the-regression-model" class="level1">
+<h1>Here is the start of the regression model</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#source('run_api.R')</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>all_stats_df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">'../data/Player_Stats.csv'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 563 Columns: 14
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (3): Team_Alias, Player_Name, Position
+dbl (11): Minutes, PPG, APG, DefRBD, OffRBD, SPG, BPG, Paint_PPG, att_3PT_pg...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>all_teams_stats <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (team <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(nba_teams)) {</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  team_id <span class="ot">&lt;-</span> nba_teams<span class="sc">$</span>team_id[team]</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  team_alias <span class="ot">&lt;-</span> nba_teams<span class="sc">$</span>alias[team]</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  endpoint <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"https://api.sportradar.com/nba/trial/v8/en/seasons/"</span>,</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    season_year, <span class="st">"/"</span>, season_type, <span class="st">"/teams/"</span>, team_id, <span class="st">"/statistics.json?api_key="</span>, api_key</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  response <span class="ot">&lt;-</span> <span class="fu">GET</span>(endpoint, <span class="fu">add_headers</span>(<span class="st">"accept"</span> <span class="ot">=</span> <span class="st">"application/json"</span>))</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (response<span class="sc">$</span>status_code <span class="sc">==</span> <span class="dv">200</span>) {</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parse the JSON data</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    json_data <span class="ot">&lt;-</span> <span class="fu">content</span>(response, <span class="at">as =</span> <span class="st">"text"</span>, <span class="at">encoding =</span> <span class="st">"UTF-8"</span>)</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    nba_stats <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(json_data, <span class="at">flatten =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    players_stats <span class="ot">&lt;-</span> nba_stats<span class="sc">$</span>players</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    team_player_stats <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(players_stats<span class="sc">$</span>full_name)) {</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Extract individual player stats</span></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>      player_name <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>full_name[i]</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>      minutes <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>total.minutes[i]</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>      ppg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.points[i]</span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>      apg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.assists[i]</span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>      DefRBD <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.def_rebounds[i]</span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>      OffRBD <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.off_rebounds[i]</span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>      spg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.steals[i]</span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>      bpg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.blocks[i]</span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>      paint_ppg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.points_in_paint[i]</span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>      att_3pt_pg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.three_points_att[i]</span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>      made_3pt_pg <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>average.three_points_made[i]</span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>      ATO <span class="ot">&lt;-</span> players_stats<span class="sc">$</span>total.assists_turnover_ratio[i]</span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Create a list for the player's stats</span></span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>      player_stats <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>        <span class="at">Team_Alias =</span> team_alias,</span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">Player_Name =</span> player_name,</span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">Minutes =</span> minutes,</span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>        <span class="at">PPG =</span> ppg,</span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>        <span class="at">APG =</span> apg,</span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>        <span class="at">DefRBD =</span> DefRBD,</span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>        <span class="at">OffRBD =</span> OffRBD,</span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>        <span class="at">SPG =</span> spg,</span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>        <span class="at">BPG =</span> bpg,</span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>        <span class="at">Paint_PPG =</span> paint_ppg,</span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>        <span class="at">att_3PT_pg =</span> att_3pt_pg,</span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>        <span class="at">made_3PT_pg =</span> made_3pt_pg,</span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>        <span class="at">ATO =</span> ATO</span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>      team_player_stats[[i]] <span class="ot">&lt;-</span> player_stats</span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>    team_player_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, team_player_stats)</span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>    all_teams_stats[[team_alias]] <span class="ot">&lt;-</span> team_player_df</span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Handle the error</span></span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"Error fetching data for team"</span>, team_alias, <span class="st">": HTTP status"</span>, response<span class="sc">$</span>status_code, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="fl">1.5</span>)  <span class="co"># Delay for 1.5 seconds between requests</span></span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Player_data <span class="ot">&lt;-</span> all_stats_df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Minutes <span class="sc">&gt;=</span> <span class="dv">528</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Player_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Error fetching data for team CLE : HTTP status 429 </code></pre>
+<pre><code># A tibble: 6 × 14
+  Team_Alias Player_Name Minutes   PPG   APG DefRBD OffRBD   SPG   BPG Paint_PPG
+  &lt;chr&gt;      &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;
+1 MIN        Kyle Ander…    1782   6.4   4.2   2.7    0.76  0.9   0.59      4.28
+2 MIN        Rudy Gobert    2593  14     1.3   9.17   3.75  0.68  2.13     10.6 
+3 MIN        Mike Conley    2193  11.4   5.9   2.38   0.49  1.16  0.22      2.63
+4 MIN        Naz Reid       1964  13.5   1.3   4.32   0.9   0.78  0.9       5.68
+5 MIN        Jaden McDa…    2105  10.5   1.4   2.33   0.78  0.88  0.58      5.36
+6 MIN        Karl-Antho…    2026  21.8   3     6.79   1.52  0.69  0.66      9.9 
+# ℹ 4 more variables: att_3PT_pg &lt;dbl&gt;, made_3PT_pg &lt;dbl&gt;, ATO &lt;dbl&gt;,
+#   Position &lt;chr&gt;</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>all_stats_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, all_teams_stats)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-5-continued" class="level1">
+<h1>Step 5 Continued</h1>
+<p>This is part of step 5 we are creating a dissamilarity matrix to see how similar players are based on the categorical and numerical data. I do not know yet how to read a dissimilarity matrix</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(Player_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>spc_tbl_ [300 × 14] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ Team_Alias : chr [1:300] "MIN" "MIN" "MIN" "MIN" ...
+ $ Player_Name: chr [1:300] "Kyle Anderson" "Rudy Gobert" "Mike Conley" "Naz Reid" ...
+ $ Minutes    : num [1:300] 1782 2593 2193 1964 2105 ...
+ $ PPG        : num [1:300] 6.4 14 11.4 13.5 10.5 21.8 3.5 25.9 8 3.3 ...
+ $ APG        : num [1:300] 4.2 1.3 5.9 1.3 1.4 3 2 5.1 2.5 1 ...
+ $ DefRBD     : num [1:300] 2.7 9.17 2.38 4.32 2.33 6.79 0.96 4.78 1.61 2.06 ...
+ $ OffRBD     : num [1:300] 0.76 3.75 0.49 0.9 0.78 1.52 0.32 0.66 0.43 1.49 ...
+ $ SPG        : num [1:300] 0.9 0.68 1.16 0.78 0.88 0.69 0.63 1.28 0.78 0.24 ...
+ $ BPG        : num [1:300] 0.59 2.13 0.22 0.9 0.58 0.66 0.13 0.53 0.51 0.29 ...
+ $ Paint_PPG  : num [1:300] 4.28 10.61 2.63 5.68 5.36 ...
+ $ att_3PT_pg : num [1:300] 0.61 0.04 5.33 5.04 3.54 5.27 1.59 6.73 4.09 0.02 ...
+ $ made_3PT_pg: num [1:300] 0.14 0 2.36 2.09 1.19 2.19 0.75 2.41 1.6 0 ...
+ $ ATO        : num [1:300] 3.64 0.86 4.4 0.95 1.16 1.07 5.79 1.68 2.68 1.76 ...
+ $ Position   : chr [1:300] "F" "C" "G" "C" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   Team_Alias = col_character(),
+  ..   Player_Name = col_character(),
+  ..   Minutes = col_double(),
+  ..   PPG = col_double(),
+  ..   APG = col_double(),
+  ..   DefRBD = col_double(),
+  ..   OffRBD = col_double(),
+  ..   SPG = col_double(),
+  ..   BPG = col_double(),
+  ..   Paint_PPG = col_double(),
+  ..   att_3PT_pg = col_double(),
+  ..   made_3PT_pg = col_double(),
+  ..   ATO = col_double(),
+  ..   Position = col_character()
+  .. )
+ - attr(*, "problems")=&lt;externalptr&gt; </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>Team_Alias <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(Player_data<span class="sc">$</span>Team_Alias)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>Player_Name <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(Player_data<span class="sc">$</span>Player_Name) </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>Position <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(Player_data<span class="sc">$</span>Position)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>Minutes <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>Minutes)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>PPG <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>PPG)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>APG <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>APG)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>DefRBD <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>DefRBD)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>OffRBD <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>OffRBD)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>SPG <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>SPG)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>BPG <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>BPG)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>Paint_PPG <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>Paint_PPG)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>att_3PT_pg <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>att_3PT_pg)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>made_3PT_pg <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>made_3PT_pg)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>Player_data<span class="sc">$</span>ATO <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(Player_data<span class="sc">$</span>ATO)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cluster)</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>player_data_without_names <span class="ot">&lt;-</span> Player_data[, <span class="sc">!</span>(<span class="fu">names</span>(Player_data) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Player_Name"</span>, <span class="st">"Team_Alias"</span>))]</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>dissimilarity_matrix <span class="ot">&lt;-</span> <span class="fu">daisy</span>(player_data_without_names, <span class="at">metric =</span> <span class="st">"gower"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Player_data <span class="ot">&lt;-</span> all_stats_df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Minutes <span class="sc">&gt;=</span> <span class="dv">528</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.1 (2024-06-14)
 Platform: aarch64-apple-darwin20
-Running under: macOS 15.0.1
+Running under: macOS Sonoma 14.5
 
 Matrix products: default
 BLAS:   /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRblas.0.dylib 
@@ -295,18 +267,25 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] dplyr_1.1.4    jsonlite_1.8.8 httr_1.4.7    
+ [1] cluster_2.1.6   lubridate_1.9.3 forcats_1.0.0   stringr_1.5.1  
+ [5] purrr_1.0.2     readr_2.1.5     tidyr_1.3.1     tibble_3.2.1   
+ [9] ggplot2_3.5.1   tidyverse_2.0.0 dplyr_1.1.4    
 
 loaded via a namespace (and not attached):
- [1] vctrs_0.6.5       cli_3.6.3         knitr_1.48        rlang_1.1.4      
- [5] xfun_0.47         generics_0.1.3    glue_1.7.0        htmltools_0.5.8.1
- [9] fansi_1.0.6       rmarkdown_2.28    evaluate_0.24.0   tibble_3.2.1     
-[13] fastmap_1.2.0     yaml_2.3.10       lifecycle_1.0.4   compiler_4.4.1   
-[17] htmlwidgets_1.6.4 pkgconfig_2.0.3   rstudioapi_0.16.0 digest_0.6.37    
-[21] R6_2.5.1          tidyselect_1.2.1  utf8_1.2.4        pillar_1.9.0     
-[25] curl_5.2.2        magrittr_2.0.3    tools_4.4.1      </code></pre>
+ [1] bit_4.0.5         gtable_0.3.5      jsonlite_1.8.8    crayon_1.5.3     
+ [5] compiler_4.4.1    tidyselect_1.2.1  parallel_4.4.1    scales_1.3.0     
+ [9] yaml_2.3.8        fastmap_1.2.0     R6_2.5.1          generics_0.1.3   
+[13] knitr_1.47        htmlwidgets_1.6.4 munsell_0.5.1     pillar_1.9.0     
+[17] tzdb_0.4.0        rlang_1.1.4       utf8_1.2.4        stringi_1.8.4    
+[21] xfun_0.45         bit64_4.0.5       timechange_0.3.0  cli_3.6.3        
+[25] withr_3.0.0       magrittr_2.0.3    digest_0.6.36     grid_4.4.1       
+[29] vroom_1.6.5       rstudioapi_0.16.0 hms_1.1.3         lifecycle_1.0.4  
+[33] vctrs_0.6.5       evaluate_0.24.0   glue_1.7.0        fansi_1.0.6      
+[37] colorspace_2.1-0  rmarkdown_2.27    tools_4.4.1       pkgconfig_2.0.3  
+[41] htmltools_0.5.8.1</code></pre>
 </div>
 </div>
+</section>
 
 </main>
 <!-- /main column -->
