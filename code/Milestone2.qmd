@@ -5,22 +5,23 @@ format: html
 
 ```{r}
 library(dplyr)
+library(tidyverse)
 ```
 
 
-#Step 1
+# Step 1
 
 Created the github repository is Complete
 
-#Step 2
+# Step 2
 
 Alro crushed the git ignore
 
-#Step 3
+# Step 3
 
 I have added you as a collaborator is complete
 
-#Step 4
+# Step 4
 
 I have added the sessionInfo() is complete
 
@@ -30,14 +31,14 @@ I have added the sessionInfo() is complete
 I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the "app" 
 
 
-#Here is the start of the regression model 
+# Here is the start of the regression model 
 
 
 
 
 ```{r}
 #source('run_api.R')
-#all_stats_df <- read_csv('../data/PlayerStats.csv')
+all_stats_df <- read_csv('../data/Player_Stats.csv')
 
 ```
 
@@ -50,7 +51,7 @@ head(Player_data)
 ```
 
 
-#Step 5 Continued
+# Step 5 Continued
 
 This is part of step 5 we are creating a dissamilarity matrix to see how similar players are based on the categorical and numerical data. I do not know yet how to read a dissimilarity matrix
 
@@ -81,7 +82,6 @@ player_data_without_names <- Player_data[, !(names(Player_data) %in% c("Player_N
 
 dissimilarity_matrix <- daisy(player_data_without_names, metric = "gower")
 
-dissimilarity_matrix
 ```
 
 
