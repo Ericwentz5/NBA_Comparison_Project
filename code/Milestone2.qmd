@@ -3,23 +3,190 @@ title: "Milestone 2"
 format: html
 ---
 
-## Quarto
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
 
-## Running Code
+#Step 1 is Complete
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+#Step 2 Arlo working on it
+
+#Step 3 is complete
+
+#Step 4 is complete
+
+#Step 5: I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the "app" 
+
+
+#Here is the start of the regression model 
+
+
 
 ```{r}
-1 + 1e
-```
 
-You can add options to executable code like this 
+library(httr)
+library(jsonlite)
+library(dplyr)
+
+
+api_key <- "HSSl560bJq1tcEhYaXzoK4eH3yvmvLhY5kM9WIh7" 
+season_year <- 2023
+season_type <- "REG"
+
+
+nba_teams <- data.frame(
+  team_id = c(
+    "583eca2f-fb46-11e1-82cb-f4ce4684ea4c", # Timberwolves
+    "583ec773-fb46-11e1-82cb-f4ce4684ea4c", # Cavaliers
+    "583ecae2-fb46-11e1-82cb-f4ce4684ea4c", # Lakers
+    "583ec97e-fb46-11e1-82cb-f4ce4684ea4c", # Hornets
+    "583ecdfb-fb46-11e1-82cb-f4ce4684ea4c", # Clippers
+    "583eccfa-fb46-11e1-82cb-f4ce4684ea4c", # Celtics
+    "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c", # Wizards
+    "583ecf50-fb46-11e1-82cb-f4ce4684ea4c", # Mavericks
+    "583ed102-fb46-11e1-82cb-f4ce4684ea4c", # Nuggets
+    "583ecb8f-fb46-11e1-82cb-f4ce4684ea4c", # Hawks
+    "583ecefd-fb46-11e1-82cb-f4ce4684ea4c", # Bucks
+    "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c", # Bulls
+    "583eca88-fb46-11e1-82cb-f4ce4684ea4c", # Grizzlies
+    "583ecea6-fb46-11e1-82cb-f4ce4684ea4c", # Heat
+    "583ecc9a-fb46-11e1-82cb-f4ce4684ea4c", # Pelicans
+    "583ece50-fb46-11e1-82cb-f4ce4684ea4c", # Jazz
+    "583ec7cd-fb46-11e1-82cb-f4ce4684ea4c", # Pacers
+    "583ecda6-fb46-11e1-82cb-f4ce4684ea4c", # Raptors
+    "583ed157-fb46-11e1-82cb-f4ce4684ea4c", # Magic
+    "583ecd4f-fb46-11e1-82cb-f4ce4684ea4c", # Spurs
+    "583ed0ac-fb46-11e1-82cb-f4ce4684ea4c", # Kings
+    "583ecfa8-fb46-11e1-82cb-f4ce4684ea4c", # Suns
+    "583ecfff-fb46-11e1-82cb-f4ce4684ea4c", # Thunder
+    "583ed056-fb46-11e1-82cb-f4ce4684ea4c", # Trail Blazers
+    "583ec825-fb46-11e1-82cb-f4ce4684ea4c" # Warriors
+  ),
+  alias = c(
+    "MIN", # Timberwolves
+    "CLE", # Cavaliers
+    "LAL", # Lakers
+    "CHA", # Hornets
+    "LAC", # Clippers
+    "BOS", # Celtics
+    "WAS", # Wizards
+    "DAL", # Mavericks
+    "DEN", # Nuggets
+    "ATL", # Hawks
+    "MIL", # Bucks
+    "CHI", # Bulls
+    "MEM", # Grizzlies
+    "MIA", # Heat
+    "NOP", # Pelicans
+    "UTA", # Jazz
+    "IND", # Pacers
+    "TOR", # Raptors
+    "ORL", # Magic
+    "SAS", # Spurs
+    "SAC", # Kings
+    "PHX", # Suns
+    "OKC", # Thunder
+    "POR", # Trail Blazers
+    "GSW" # Warriors
+  )
+)
+
+
+
+```
 
 ```{r}
-#| echo: false
-2 * 2
+all_teams_stats <- list()
+
+for (team in 1:nrow(nba_teams)) {
+  team_id <- nba_teams$team_id[team]
+  team_alias <- nba_teams$alias[team]
+  
+
+  endpoint <- paste0(
+    "https://api.sportradar.com/nba/trial/v8/en/seasons/",
+    season_year, "/", season_type, "/teams/", team_id, "/statistics.json?api_key=", api_key
+  )
+
+  response <- GET(endpoint, add_headers("accept" = "application/json"))
+  
+  if (response$status_code == 200) {
+    # Parse the JSON data
+    json_data <- content(response, as = "text", encoding = "UTF-8")
+    nba_stats <- fromJSON(json_data, flatten = TRUE)
+    
+    players_stats <- nba_stats$players
+    
+
+    team_player_stats <- list()
+    
+    for (i in 1:length(players_stats$full_name)) {
+      # Extract individual player stats
+      player_name <- players_stats$full_name[i]
+      minutes <- players_stats$total.minutes[i]
+      ppg <- players_stats$average.points[i]
+      apg <- players_stats$average.assists[i]
+      DefRBD <- players_stats$average.def_rebounds[i]
+      OffRBD <- players_stats$average.off_rebounds[i]
+      spg <- players_stats$average.steals[i]
+      bpg <- players_stats$average.blocks[i]
+      paint_ppg <- players_stats$average.points_in_paint[i]
+      att_3pt_pg <- players_stats$average.three_points_att[i]
+      made_3pt_pg <- players_stats$average.three_points_made[i]
+      ATO <- players_stats$total.assists_turnover_ratio[i]
+      
+      # Create a list for the player's stats
+      player_stats <- list(
+        Team_Alias = team_alias,
+        Player_Name = player_name,
+        Minutes = minutes,
+        PPG = ppg,
+        APG = apg,
+        DefRBD = DefRBD,
+        OffRBD = OffRBD,
+        SPG = spg,
+        BPG = bpg,
+        Paint_PPG = paint_ppg,
+        att_3PT_pg = att_3pt_pg,
+        made_3PT_pg = made_3pt_pg,
+        ATO = ATO
+      )
+      
+
+      team_player_stats[[i]] <- player_stats
+    }
+    
+
+    team_player_df <- do.call(rbind.data.frame, team_player_stats)
+    
+
+    all_teams_stats[[team_alias]] <- team_player_df
+    
+
+
+    
+  } else {
+    # Handle the error
+    cat("Error fetching data for team", team_alias, ": HTTP status", response$status_code, "\n")
+  }
+  
+
+  Sys.sleep(1.5)  # Delay for 1.5 seconds between requests
+}
+
+
+all_stats_df <- do.call(rbind, all_teams_stats)
+
+
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+
+
+```{r}
+Player_data <- all_stats_df %>% filter(Minutes >= 528)
+```
+
+
+```{r}
+sessionInfo()
+```
+

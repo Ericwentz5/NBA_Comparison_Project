@@ -233,6 +233,8 @@ How can we compare and rank players based on different performance categories?
   
 Plan to Address These Questions
 
+
+
 Step 1: Data Cleaning and Preparation
 
 
@@ -274,3 +276,10 @@ Testing and Validation: Ensure the similarity tool, qualitative story generation
 Refine Outputs: Make final adjustments based on feedback, ensuring that outputs (similar players, stories, rankings) are meaningful and accurate.
 Total Timeframe: 16 days
 This plan is reasonable to complete within the next 2.5 weeks, allowing time for feedback integration and refinements.
+
+
+
+```{r}
+sessionInfo()
+```
+
