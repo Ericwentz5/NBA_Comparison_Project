@@ -1,0 +1,276 @@
+---
+title: "Milestone 1"
+format: html
+---
+
+Eric Wentz, Neel Thakurdas, Arlo Heitler
+
+
+
+
+
+
+```{r}
+# Load necessary libraries
+library(httr)
+library(jsonlite)
+library(dplyr)
+
+# Define the API key and season details
+api_key <- "HSSl560bJq1tcEhYaXzoK4eH3yvmvLhY5kM9WIh7"  # Replace with your actual API key
+season_year <- 2023
+season_type <- "REG"
+
+# Placeholder for nba_teams, in case the filtering part isn't already run:
+nba_teams <- data.frame(
+  team_id = c(
+    "583eca2f-fb46-11e1-82cb-f4ce4684ea4c", # Timberwolves
+    "583ec773-fb46-11e1-82cb-f4ce4684ea4c", # Cavaliers
+    "583ecae2-fb46-11e1-82cb-f4ce4684ea4c", # Lakers
+    "583ec97e-fb46-11e1-82cb-f4ce4684ea4c", # Hornets
+    "583ecdfb-fb46-11e1-82cb-f4ce4684ea4c", # Clippers
+    "583eccfa-fb46-11e1-82cb-f4ce4684ea4c", # Celtics
+    "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c", # Wizards
+    "583ecf50-fb46-11e1-82cb-f4ce4684ea4c", # Mavericks
+    "583ed102-fb46-11e1-82cb-f4ce4684ea4c", # Nuggets
+    "583ecb8f-fb46-11e1-82cb-f4ce4684ea4c", # Hawks
+    "583ecefd-fb46-11e1-82cb-f4ce4684ea4c", # Bucks
+    "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c", # Bulls
+    "583eca88-fb46-11e1-82cb-f4ce4684ea4c", # Grizzlies
+    "583ecea6-fb46-11e1-82cb-f4ce4684ea4c", # Heat
+    "583ecc9a-fb46-11e1-82cb-f4ce4684ea4c", # Pelicans
+    "583ece50-fb46-11e1-82cb-f4ce4684ea4c", # Jazz
+    "583ec7cd-fb46-11e1-82cb-f4ce4684ea4c", # Pacers
+    "583ecda6-fb46-11e1-82cb-f4ce4684ea4c", # Raptors
+    "583ed157-fb46-11e1-82cb-f4ce4684ea4c", # Magic
+    "583ecd4f-fb46-11e1-82cb-f4ce4684ea4c", # Spurs
+    "583ed0ac-fb46-11e1-82cb-f4ce4684ea4c", # Kings
+    "583ecfa8-fb46-11e1-82cb-f4ce4684ea4c", # Suns
+    "583ecfff-fb46-11e1-82cb-f4ce4684ea4c", # Thunder
+    "583ed056-fb46-11e1-82cb-f4ce4684ea4c", # Trail Blazers
+    "583ec825-fb46-11e1-82cb-f4ce4684ea4c" # Warriors
+  ),
+  alias = c(
+    "MIN", # Timberwolves
+    "CLE", # Cavaliers
+    "LAL", # Lakers
+    "CHA", # Hornets
+    "LAC", # Clippers
+    "BOS", # Celtics
+    "WAS", # Wizards
+    "DAL", # Mavericks
+    "DEN", # Nuggets
+    "ATL", # Hawks
+    "MIL", # Bucks
+    "CHI", # Bulls
+    "MEM", # Grizzlies
+    "MIA", # Heat
+    "NOP", # Pelicans
+    "UTA", # Jazz
+    "IND", # Pacers
+    "TOR", # Raptors
+    "ORL", # Magic
+    "SAS", # Spurs
+    "SAC", # Kings
+    "PHX", # Suns
+    "OKC", # Thunder
+    "POR", # Trail Blazers
+    "GSW" # Warriors
+  )
+)
+
+
+
+
+```
+
+
+
+```{r}
+
+all_teams_stats <- list()
+
+for (team in 1:nrow(nba_teams)) {
+  team_id <- nba_teams$team_id[team]
+  team_alias <- nba_teams$alias[team]
+  
+
+  endpoint <- paste0(
+    "https://api.sportradar.com/nba/trial/v8/en/seasons/",
+    season_year, "/", season_type, "/teams/", team_id, "/statistics.json?api_key=", api_key
+  )
+
+  response <- GET(endpoint, add_headers("accept" = "application/json"))
+  
+  if (response$status_code == 200) {
+    # Parse the JSON data
+    json_data <- content(response, as = "text", encoding = "UTF-8")
+    nba_stats <- fromJSON(json_data, flatten = TRUE)
+    
+    players_stats <- nba_stats$players
+    
+
+    team_player_stats <- list()
+    
+    for (i in 1:length(players_stats$full_name)) {
+      # Extract individual player stats
+      player_name <- players_stats$full_name[i]
+      minutes <- players_stats$total.minutes[i]
+      ppg <- players_stats$average.points[i]
+      apg <- players_stats$average.assists[i]
+      DefRBD <- players_stats$average.def_rebounds[i]
+      OffRBD <- players_stats$average.off_rebounds[i]
+      spg <- players_stats$average.steals[i]
+      bpg <- players_stats$average.blocks[i]
+      paint_ppg <- players_stats$average.points_in_paint[i]
+      att_3pt_pg <- players_stats$average.three_points_att[i]
+      made_3pt_pg <- players_stats$average.three_points_made[i]
+      ATO <- players_stats$total.assists_turnover_ratio[i]
+      
+      # Create a list for the player's stats
+      player_stats <- list(
+        Team_Alias = team_alias,
+        Player_Name = player_name,
+        Minutes = minutes,
+        PPG = ppg,
+        APG = apg,
+        DefRBD = DefRBD,
+        OffRBD = OffRBD,
+        SPG = spg,
+        BPG = bpg,
+        Paint_PPG = paint_ppg,
+        att_3PT_pg = att_3pt_pg,
+        made_3PT_pg = made_3pt_pg,
+        ATO = ATO
+      )
+      
+
+      team_player_stats[[i]] <- player_stats
+    }
+    
+
+    team_player_df <- do.call(rbind.data.frame, team_player_stats)
+    
+
+    all_teams_stats[[team_alias]] <- team_player_df
+    
+
+
+    
+  } else {
+    # Handle the error
+    cat("Error fetching data for team", team_alias, ": HTTP status", response$status_code, "\n")
+  }
+  
+
+  Sys.sleep(1.5)  # Delay for 1.5 seconds between requests
+}
+
+
+all_stats_df <- do.call(rbind, all_teams_stats)
+
+
+
+```
+
+```{r}
+Player_data <- all_stats_df %>% filter(Minutes >= 528)
+```
+
+```{r}
+
+"Project Topic (Briefly describe your project topic/scope in one phrase/sentence):
+Using data determining the NBA player most similar to your own play style
+
+Questions: Describe 2-3 broad questions that you wish to explore within this topic. 
+How to break down complex NBA data into bite-sized information that helps categorize them and display them in a visually appealing manner that is easy to understand for even those who know very little about the NBA.
+How to help local pickup basketball players identify the most similar basketball player relative to their playing environment.
+Data: Find one data source, and read that data into R.
+
+
+Data Context: Thoroughly describe the data context (who, what, when, where, why, and how? questions related to the dataset).
+Who
+NBA players who participated in the 2023-2024 NBA season 
+What 
+All of their recordable stats  
+Where 
+Where every the game happened to be played
+Why
+This data is necessary in keeping track of player performance 
+How
+There are statisticians whose job it is to watch the games and make a database
+
+      Player_name : player name 
+      minutes <- total minutes played
+      ppg <- average points scored per game
+      apg <- average assist per game
+      DefRBD <- average defensive rebounds per game
+      OffRBD <- average offensive rebounds per game
+      spg <- average steals per game
+      bpg <- average blocks per game
+      paint_ppg <- average points in the paint per game
+      att_3pt_pg <- average 3 pointers attempted per game
+      made_3pt_pg <- average 3 pointers made per game
+      ATO <- assist to turnovers ratio"
+
+
+
+```
+
+
+
+
+
+
+How can we identify an NBA player most similar to a provided player's data?
+  - This question involves using statistical comparisons to match players based on performance metrics.
+
+How can we tell a story about qualitative performance using quantitative numbers?
+  - This question explores transforming quantitative player stats into insights that narrate their playing style or contributions to a team.
+
+How can we compare and rank players based on different performance categories?
+  - This involves comparing players across various statistical categories and creating rankings.
+  
+Plan to Address These Questions
+
+Step 1: Data Cleaning and Preparation
+
+
+Tasks:
+  - Ensure the dataset is cleaned (handling missing values, standardizing units, etc.).
+  - Verify that all player statistics are formatted properly for analysis (e.g.,     -    - per-game stats, totals, percentages).
+  - Why it’s necessary: Clean data is crucial for accurate comparisons, modeling, and     - analysis.
+
+Step 2: Identify Similar Players
+
+Tasks:
+  - Metric Selection: Choose which statistics (e.g., points per game, rebounds, assists,   - shooting percentages) are most relevant for comparison.
+  - Distance Metrics: Implement a method for measuring similarity between players (e.g.,
+  - Euclidean distance, cosine similarity) using the selected metrics.
+  - Player Comparison Tool: Create a tool or function that accepts a player’s data and    - returns the most similar NBA player based on the distance metric.
+  - Outcome: A system that, given a player’s stats, can identify the most similar     -     - players.
+
+Step 3: Tell a Qualitative Story Using Quantitative Numbers
+
+Tasks:
+  - Exploratory Data Analysis: Look at key stats to find trends or notable performances     - (e.g., clutch shooting, defensive impact).
+  - Statistical Summarization: Use advanced metrics like Player Efficiency Rating (PER),   - Win Shares, or plus-minus to describe player contributions.
+  - Player Profiles: Generate narrative-style profiles for players based on their         - statistics (e.g., high scorers, defensive anchors, versatile playmakers).
+  - Outcome: Insights that convert quantitative data into a player’s qualitative          - performance story.
+  
+Step 4: Ranking Players by Performance
+
+Tasks:
+Category Selection: Identify the categories in which players will be ranked (e.g., points, assists, rebounds, defensive rating).
+Normalization of Metrics: Normalize the data across categories to allow for fair comparison (e.g., Z-scores, min-max scaling).
+Ranking: Develop a ranking system based on weighted averages or aggregate scores across different categories.
+Outcome: A comprehensive ranking of players based on the chosen performance metrics.
+
+
+Step 5: Finalize and Review
+
+Tasks:
+Testing and Validation: Ensure the similarity tool, qualitative story generation, and ranking system work with various player data inputs.
+Refine Outputs: Make final adjustments based on feedback, ensuring that outputs (similar players, stories, rankings) are meaningful and accurate.
+Total Timeframe: 16 days
+This plan is reasonable to complete within the next 2.5 weeks, allowing time for feedback integration and refinements.
