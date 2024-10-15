@@ -5,42 +5,26 @@ format: html
 
 
 
-#Step 1: 
-Create a team GitHub repository (indicate you want a README file when you create it) with a folder structure as follows:
+#Step 1
 
-Complete!
+Created the github repository is Complete
 
-#Step 2: 
-Create a .gitignore file.
+#Step 2
 
-Complete!
+Alro crushed the git ignore
 
-#Step 3: 
-Add the instructor as a collaborator to your project GitHub repository. (GH username: bcheggeseth)
+#Step 3
 
-Complete!
+I have added you as a collaborator is complete
 
-#Step 4: 
-Add a code chunk to the end of all of your .Rmd/.qmd documents with sessionInfo() 
-Complete!
+#Step 4
 
-#Step 5: 
-In a Milestone2.qmd file, complete the steps in your plan from Milestone 1 (the plan with feedback from the instructional team).
+I have added the sessionInfo() is complete
+
+
+# Step 5 
 
 I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the "app" 
-
-#Step 6: 
-At the bottom of Milestone2.qmd, write a plan for further pursuing your 2-3 broad questions. Make sure that the steps in this plan are reasonable to complete in the next few weeks for Milestone 3 (which involves writing a short blog with initial data story (your results so far). You will receive feedback on this plan and will be expected to integrate this feedback for Milestone 3. Questions to think about as you develop this plan:
-More detailed plan for further pursuing these questions: 
-
-So we have our cleaned data, now it is just about applying it in the context of our specific task with the project. The data involves the player, team, and 11 metrics. Our goal is to first consolidate those metrics into 5-6 key stats by combining similar stats. For example, points per game, paint points per game, and 3-pt efficiency could be consolidated into scoring efficiency. 
-Then, our plan is to extrapolate that data and rate each player on each statistic on a scale of 1-100. As of now, we are now planning on using a min-max scale, where the player with the lowest stat in that category has a 1 and the highest has a 100. We will then apply a model to fit every person in between based on how close they are to the minimum/maximum statistic.
-Another task we have is to create the visualizations for each player. We have an idea for how this would look like. A comparable would be a soccer hexagon stat type of graphic.
-We are thinking of finding out a way to import picture of the players that will be displayed 
-We will make visualizations by each stat and then also combined.  
-Our next step would be to create the layout for the slider. We would have the same 5-6 key stats and have a slider for each which would be on a scale of 1-100.
-Our end goal is such that anybody using the application can slide each of their stats according to how they play relative to their environment (high school, college, park, pickup, etc.). We will then have another model to match the input from the slider to the player that has the 5-6 stats that are closest to those inputs. We are still figuring out what kind of model we will use to get the information, but are happy to listen to inputs. 
-
 
 
 #Here is the start of the regression model 
@@ -159,6 +143,7 @@ for (team in 1:nrow(nba_teams)) {
       att_3pt_pg <- players_stats$average.three_points_att[i]
       made_3pt_pg <- players_stats$average.three_points_made[i]
       ATO <- players_stats$total.assists_turnover_ratio[i]
+      Position <- players_stats$position[i]
       
       # Create a list for the player's stats
       player_stats <- list(
@@ -174,7 +159,8 @@ for (team in 1:nrow(nba_teams)) {
         Paint_PPG = paint_ppg,
         att_3PT_pg = att_3pt_pg,
         made_3PT_pg = made_3pt_pg,
-        ATO = ATO
+        ATO = ATO,
+        Position = Position
       )
       
 
@@ -210,6 +196,43 @@ all_stats_df <- do.call(rbind, all_teams_stats)
 
 ```{r}
 Player_data <- all_stats_df %>% filter(Minutes >= 528)
+
+head(Player_data)
+```
+
+
+#Step 5 Continued
+
+This is part of step 5 we are creating a dissamilarity matrix to see how similar players are based on the categorical and numerical data. I do not know yet how to read a dissimilarity matrix
+
+```{r}
+str(Player_data)
+
+Player_data$Team_Alias <- as.factor(Player_data$Team_Alias)
+Player_data$Player_Name <- as.factor(Player_data$Player_Name) 
+Player_data$Position <- as.factor(Player_data$Position)
+
+
+Player_data$Minutes <- as.numeric(Player_data$Minutes)
+Player_data$PPG <- as.numeric(Player_data$PPG)
+Player_data$APG <- as.numeric(Player_data$APG)
+Player_data$DefRBD <- as.numeric(Player_data$DefRBD)
+Player_data$OffRBD <- as.numeric(Player_data$OffRBD)
+Player_data$SPG <- as.numeric(Player_data$SPG)
+Player_data$BPG <- as.numeric(Player_data$BPG)
+Player_data$Paint_PPG <- as.numeric(Player_data$Paint_PPG)
+Player_data$att_3PT_pg <- as.numeric(Player_data$att_3PT_pg)
+Player_data$made_3PT_pg <- as.numeric(Player_data$made_3PT_pg)
+Player_data$ATO <- as.numeric(Player_data$ATO)
+
+library(cluster)
+
+player_data_without_names <- Player_data[, !(names(Player_data) %in% c("Player_Name", "Team_Alias"))]
+
+
+dissimilarity_matrix <- daisy(player_data_without_names, metric = "gower")
+
+dissimilarity_matrix
 ```
 
 
