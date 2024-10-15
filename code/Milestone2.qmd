@@ -5,15 +5,26 @@ format: html
 
 
 
-#Step 1 is Complete
+#Step 1
 
-#Step 2 Arlo working on it
+Created the github repository is Complete
 
-#Step 3 is complete
+#Step 2
 
-#Step 4 is complete
+Alro crushed the git ignore
 
-#Step 5: I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the "app" 
+#Step 3
+
+I have added you as a collaborator is complete
+
+#Step 4
+
+I have added the sessionInfo() is complete
+
+
+# Step 5 
+
+I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the "app" 
 
 
 #Here is the start of the regression model 
@@ -132,6 +143,7 @@ for (team in 1:nrow(nba_teams)) {
       att_3pt_pg <- players_stats$average.three_points_att[i]
       made_3pt_pg <- players_stats$average.three_points_made[i]
       ATO <- players_stats$total.assists_turnover_ratio[i]
+      Position <- players_stats$position[i]
       
       # Create a list for the player's stats
       player_stats <- list(
@@ -147,7 +159,8 @@ for (team in 1:nrow(nba_teams)) {
         Paint_PPG = paint_ppg,
         att_3PT_pg = att_3pt_pg,
         made_3PT_pg = made_3pt_pg,
-        ATO = ATO
+        ATO = ATO,
+        Position = Position
       )
       
 
@@ -183,6 +196,43 @@ all_stats_df <- do.call(rbind, all_teams_stats)
 
 ```{r}
 Player_data <- all_stats_df %>% filter(Minutes >= 528)
+
+head(Player_data)
+```
+
+
+#Step 5 Continued
+
+This is part of step 5 we are creating a dissamilarity matrix to see how similar players are based on the categorical and numerical data. I do not know yet how to read a dissimilarity matrix
+
+```{r}
+str(Player_data)
+
+Player_data$Team_Alias <- as.factor(Player_data$Team_Alias)
+Player_data$Player_Name <- as.factor(Player_data$Player_Name) 
+Player_data$Position <- as.factor(Player_data$Position)
+
+
+Player_data$Minutes <- as.numeric(Player_data$Minutes)
+Player_data$PPG <- as.numeric(Player_data$PPG)
+Player_data$APG <- as.numeric(Player_data$APG)
+Player_data$DefRBD <- as.numeric(Player_data$DefRBD)
+Player_data$OffRBD <- as.numeric(Player_data$OffRBD)
+Player_data$SPG <- as.numeric(Player_data$SPG)
+Player_data$BPG <- as.numeric(Player_data$BPG)
+Player_data$Paint_PPG <- as.numeric(Player_data$Paint_PPG)
+Player_data$att_3PT_pg <- as.numeric(Player_data$att_3PT_pg)
+Player_data$made_3PT_pg <- as.numeric(Player_data$made_3PT_pg)
+Player_data$ATO <- as.numeric(Player_data$ATO)
+
+library(cluster)
+
+player_data_without_names <- Player_data[, !(names(Player_data) %in% c("Player_Name", "Team_Alias"))]
+
+
+dissimilarity_matrix <- daisy(player_data_without_names, metric = "gower")
+
+dissimilarity_matrix
 ```
 
 
