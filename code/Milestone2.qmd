@@ -9,27 +9,44 @@ library(tidyverse)
 ```
 
 
-# Step 1
+# Step 1: 
+Create a team GitHub repository (indicate you want a README file when you create it) with a folder structure as follows:
 
-Created the github repository is Complete
+Complete!
 
-# Step 2
+# Step 2: 
+Create a .gitignore file.
 
-Alro crushed the git ignore
+Complete!
 
-# Step 3
+# Step 3: 
+Add the instructor as a collaborator to your project GitHub repository. (GH username: bcheggeseth)
 
-I have added you as a collaborator is complete
+Complete!
 
+# Step 4: 
+Add a code chunk to the end of all of your .Rmd/.qmd documents with sessionInfo() 
+Complete!
 
-# Step 4
+# Step 5: 
 
-I have added the sessionInfo() is complete
-
-
-# Step 5 
+In a Milestone2.qmd file, complete the steps in your plan from Milestone 1 (the plan with feedback from the instructional team).
 
 I have added all of the initial data, which is cleaned and good to go if we want to find more data we will just have to join, for example a good one may be salary or there could be a data set for vizualizations we may need to create and or add. Furthermore, I have specifically identified which statistics we want to look at in order to make our models, and cleaned those already as well. The next step for us will to be actually develop this model in some way. Whether we want to use a machine learning regression algorithm or something more simple. This will take care of mostly all the rest of the steps as it will rank them based on specific categories and cross-list them based on different statistics. Finally, something we should start to consider are the actual looks or GUI for the "app" 
+
+# Step 6: 
+
+At the bottom of Milestone2.qmd, write a plan for further pursuing your 2-3 broad questions. Make sure that the steps in this plan are reasonable to complete in the next few weeks for Milestone 3 (which involves writing a short blog with initial data story (your results so far). You will receive feedback on this plan and will be expected to integrate this feedback for Milestone 3. Questions to think about as you develop this plan:
+More detailed plan for further pursuing these questions: 
+
+So we have our cleaned data, now it is just about applying it in the context of our specific task with the project. The data involves the player, team, and 11 metrics. Our goal is to first consolidate those metrics into 5-6 key stats by combining similar stats. For example, points per game, paint points per game, and 3-pt efficiency could be consolidated into scoring efficiency. 
+Then, our plan is to extrapolate that data and rate each player on each statistic on a scale of 1-100. As of now, we are now planning on using a min-max scale, where the player with the lowest stat in that category has a 1 and the highest has a 100. We will then apply a model to fit every person in between based on how close they are to the minimum/maximum statistic.
+Another task we have is to create the visualizations for each player. We have an idea for how this would look like. A comparable would be a soccer hexagon stat type of graphic.
+We are thinking of finding out a way to import picture of the players that will be displayed 
+We will make visualizations by each stat and then also combined.  
+Our next step would be to create the layout for the slider. We would have the same 5-6 key stats and have a slider for each which would be on a scale of 1-100.
+Our end goal is such that anybody using the application can slide each of their stats according to how they play relative to their environment (high school, college, park, pickup, etc.). We will then have another model to match the input from the slider to the player that has the 5-6 stats that are closest to those inputs. We are still figuring out what kind of model we will use to get the information, but are happy to listen to inputs. 
+
 
 
 # Here is the start of the regression model 
