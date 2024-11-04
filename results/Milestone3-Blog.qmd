@@ -1,0 +1,80 @@
+---
+title: "Milestone3-Blog.qmd"
+authors: Eric Wentz, Neel Thakurdas, Arlo Heitler
+format: html
+---
+
+```{r}
+all_stats_df <- read_csv('../data/Player_Stats.csv')
+
+Player_data <- all_stats_df %>% filter(Minutes >= 528)
+
+head(Player_data)
+```
+```{r}
+str(Player_data)
+
+Player_data$Team_Alias <- as.factor(Player_data$Team_Alias)
+Player_data$Player_Name <- as.factor(Player_data$Player_Name) 
+Player_data$Position <- as.factor(Player_data$Position)
+
+
+Player_data$Minutes <- as.numeric(Player_data$Minutes)
+Player_data$PPG <- as.numeric(Player_data$PPG)
+Player_data$APG <- as.numeric(Player_data$APG)
+Player_data$DefRBD <- as.numeric(Player_data$DefRBD)
+Player_data$OffRBD <- as.numeric(Player_data$OffRBD)
+Player_data$SPG <- as.numeric(Player_data$SPG)
+Player_data$BPG <- as.numeric(Player_data$BPG)
+Player_data$Paint_PPG <- as.numeric(Player_data$Paint_PPG)
+Player_data$att_3PT_pg <- as.numeric(Player_data$att_3PT_pg)
+Player_data$made_3PT_pg <- as.numeric(Player_data$made_3PT_pg)
+Player_data$ATO <- as.numeric(Player_data$ATO)
+
+library(cluster)
+
+player_data_without_names <- Player_data[, !(names(Player_data) %in% c("Player_Name", "Team_Alias"))]
+
+
+dissimilarity_matrix <- daisy(player_data_without_names, metric = "gower")
+
+```
+
+
+```{r}
+library(ggplot2)
+library(cluster)
+
+
+mds_result <- cmdscale(dissimilarity_matrix, k = 2)
+mds_data <- as.data.frame(mds_result)
+mds_data$Player_Name <- Player_data$Player_Name
+
+clusters <- cutree(hclust(dissimilarity_matrix), k = 5)
+mds_data$cluster <- as.factor(clusters)
+
+
+cluster_names <- c(
+  "1" = "Role-Playing Forwards",
+  "2" = "Defensive Centers",
+  "3" = "Playmaking Guards",
+  "4" = "Limited-Minute Guards",
+  "5" = "Star Forwards"
+)
+
+mds_data$cluster_name <- cluster_names[mds_data$cluster]
+
+
+ggplot(mds_data, aes(x = V1, y = V2, color = cluster_name)) +
+  geom_point() +
+  labs(title = "MDS Plot of Players by Cluster", x = "MDS Dimension 1", y = "MDS Dimension 2") +
+  scale_color_manual(values = c("Role-Playing Forwards" = "blue",
+                                "Defensive Centers" = "purple",
+                                "Playmaking Guards" = "green",
+                                "Limited-Minute Guards" = "orange",
+                                "Star Forwards" = "red"))
+
+
+```
+
+Initially I made a scatter plot that looked at how similar players were to eachother using every player as a data point. This was too messy and did not really explain anything so I developed 5 clusters. (This number may be changed but for now I think it is good). These groups or clusters represent a "type" of player. Defensive Centers are typically taller players who's main job is to rebound and protect the paint (players Rudy Gobert, Brook Lopez). Limited-minute guards are typically back-up guards who's statistics are limited due to the limited playing time they recieve (Players include Tre Jones, and payton Pritchard) . Playmaking guards are generally the leader of the team statistically and are star players at the guard position (Think of Anthony Edwards, Shai Gilgeous-Alexander, or Stephen Curry). Role-playing forwards are forwards who fly under the radar meaning they have limited stats but still play an integral part to the team (I think of Jerami Grant and Draymond Green). Finally, we have the stars of the league. Players who are large enough to be forwards but play like a guard causing matchup issues for every team they play. (All time greats like Kevin Durant and LeBron James). This plot helps us see where a player may fall into categories of players based on their stats, size, position relative to other players. Last time you mentioned why I filtered by players who played more than 528 minutes in the season. This is significant because this gave us a flat number of 300 players to look at, all of which spent the most time on the floor. 
