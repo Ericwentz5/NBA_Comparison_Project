@@ -58,3 +58,87 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 ```
 
+
+```{r}
+library(shiny)
+library(fmsb)
+library(shinyWidgets)
+
+# Function to calculate polygon area
+polygon_area <- function(values) {
+  n <- length(values)
+  area <- 0
+  for (i in 1:n) {
+    j <- ifelse(i == n, 1, i + 1)
+    area <- area + values[i] * values[j]
+  }
+  return(abs(area) / 2)
+}
+
+ui <- fluidPage(
+  titlePanel("Basketball Skills Radar Chart"),
+  sidebarLayout(
+    sidebarPanel(
+      h3("Your Attributes"),
+      sliderInput("shooting", "Shooting", min = 0, max = 100, value = 50),
+      sliderInput("passing", "Passing", min = 0, max = 100, value = 50),
+      sliderInput("defense", "Defense", min = 0, max = 100, value = 50),
+      sliderInput("rebounding", "Rebounding", min = 0, max = 100, value = 50),
+      h3("NBA Comparison Stats"),
+      sliderInput("shooting2", "Shooting 2", min = 0, max = 100, value = 50),
+      sliderInput("passing2", "Passing 2", min = 0, max = 100, value = 50),
+      sliderInput("defense2", "Defense 2", min = 0, max = 100, value = 50),
+      sliderInput("rebounding2", "Rebounding 2", min = 0, max = 100, value = 50)
+    ),
+    mainPanel(
+      plotOutput("radarPlot", width = "800px", height = "800px"),
+      h4("Area of Overlap Percentage:"),
+      textOutput("overlapArea") 
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  output$radarPlot <- renderPlot({
+    data <- data.frame(
+      Shooting = c(100, 0, input$shooting, input$shooting2),
+      Passing = c(100, 0, input$passing, input$passing2),
+      Defense = c(100, 0, input$defense, input$defense2),
+      Rebounding = c(100, 0, input$rebounding, input$rebounding2)
+    )
+    
+    # Plot radar chart
+    radarchart(data, 
+               axistype = 1, 
+               pcol = c("blue", "red"), 
+               pfcol = c(rgb(0.2, 0.5, 0.7, 0.5), rgb(0.8, 0.3, 0.3, 0.5)), 
+               plwd = 2, 
+               cglcol = "grey", 
+               cglty = 1, 
+               axislabcol = "black", 
+               caxislabels = seq(0, 100, 25), 
+               cglwd = 0.8)
+  })
+  
+  output$overlapArea <- renderText({
+    # User's values
+    user_values <- c(input$shooting, input$passing, input$defense, input$rebounding)
+    nba_values <- c(input$shooting2, input$passing2, input$defense2, input$rebounding2)
+    
+    # Calculate areas of each polygon
+    user_area <- polygon_area(user_values)
+    nba_area <- polygon_area(nba_values)
+    
+    # Calculate the overlapping area percentage
+    overlap_area <- min(user_area, nba_area)
+    baseline_area <- polygon_area(rep(50, 4))  # Area with each skill at 50 as baseline for 100% overlap
+    overlap_percentage <- (overlap_area / baseline_area) * 100
+    
+    paste("Overlap Percentage:", round(overlap_percentage, 2), "%")
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
