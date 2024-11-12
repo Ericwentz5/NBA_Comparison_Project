@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+
+```{r}
+library(shiny)
+library(fmsb)
+
+# Define UI
+ui <- fluidPage(
+  titlePanel("Basketball Skills Radar Chart"),
+  sidebarLayout(
+    sidebarPanel(
+      h3("Player 1 Stats"),
+      sliderInput("shooting", "Shooting", min = 1, max = 100, value = 50),
+      sliderInput("passing", "Passing", min = 1, max = 100, value = 50),
+      sliderInput("defense", "Defense", min = 1, max = 100, value = 50),
+      sliderInput("rebounding", "Rebounding", min = 1, max = 100, value = 50),
+      h3("Player 2 Stats"),
+      sliderInput("shooting2", "Shooting 2", min = 1, max = 100, value = 50),
+      sliderInput("passing2", "Passing 2", min = 1, max = 100, value = 50),
+      sliderInput("defense2", "Defense 2", min = 1, max = 100, value = 50),
+      sliderInput("rebounding2", "Rebounding 2", min = 1, max = 100, value = 50)
+    ),
+    mainPanel(
+      plotOutput("radarPlot", width = "700px", height = "700px") # Increase size here
+    )
+  )
+)
+
+# Define server logic
+server <- function(input, output) {
+  
+  output$radarPlot <- renderPlot({
+    # Data for radar chart
+    data <- data.frame(
+      Shooting = c(100, 0, input$shooting, input$shooting2),
+      Passing = c(100, 0, input$passing, input$passing2),
+      Defense = c(100, 0, input$defense, input$defense2),
+      Rebounding = c(100, 0, input$rebounding, input$rebounding2)
+    )
+    
+    # Plot radar chart
+    radarchart(data, 
+               axistype = 1, 
+               pcol = c("blue", "red"), 
+               pfcol = c(rgb(0.2, 0.5, 0.7, 0.5), rgb(0.8, 0.3, 0.3, 0.5)), 
+               plwd = 2, 
+               cglcol = "grey", 
+               cglty = 1, 
+               axislabcol = "black", 
+               caxislabels = seq(0, 100, 25), 
+               cglwd = 0.8)
+  })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
+
