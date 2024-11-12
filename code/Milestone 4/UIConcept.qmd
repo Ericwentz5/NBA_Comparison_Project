@@ -37,7 +37,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotOutput("radarPlot", width = "800px", height = "800px"),
-      h4("Area of Overlap Percentage:"),
+      h4("Player Similarity Percentage:"),
       textOutput("overlapArea") 
     )
   )
@@ -88,7 +88,7 @@ radarchart(data,
     # Ensure the overlap percentage does not exceed 100%
     overlap_percentage <- min(overlap_percentage, 100)
     
-    paste("Overlap Percentage:", round(overlap_percentage, 2), "%")
+    paste("", round(overlap_percentage, 2), "%")
   })
 }
 
