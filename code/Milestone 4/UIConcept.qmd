@@ -15,15 +15,15 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       h3("Your Attributes"),
-      sliderInput("shooting", "Shooting", min = 1, max = 100, value = 50),
-      sliderInput("passing", "Passing", min = 1, max = 100, value = 50),
-      sliderInput("defense", "Defense", min = 1, max = 100, value = 50),
-      sliderInput("rebounding", "Rebounding", min = 1, max = 100, value = 50),
+      sliderInput("shooting", "Shooting", min = 0, max = 100, value = 50),
+      sliderInput("passing", "Passing", min = 0, max = 100, value = 50),
+      sliderInput("defense", "Defense", min = 0, max = 100, value = 50),
+      sliderInput("rebounding", "Rebounding", min = 0, max = 100, value = 50),
       h3("NBA Comparison Stats"),
-      sliderInput("shooting2", "Shooting 2", min = 1, max = 100, value = 50),
-      sliderInput("passing2", "Passing 2", min = 1, max = 100, value = 50),
-      sliderInput("defense2", "Defense 2", min = 1, max = 100, value = 50),
-      sliderInput("rebounding2", "Rebounding 2", min = 1, max = 100, value = 50)
+      sliderInput("shooting2", "Shooting 2", min = 0, max = 100, value = 50),
+      sliderInput("passing2", "Passing 2", min = 0, max = 100, value = 50),
+      sliderInput("defense2", "Defense 2", min = 0, max = 100, value = 50),
+      sliderInput("rebounding2", "Rebounding 2", min = 0, max = 100, value = 50)
     ),
     mainPanel(
       plotOutput("radarPlot", width = "800px", height = "800px") 
