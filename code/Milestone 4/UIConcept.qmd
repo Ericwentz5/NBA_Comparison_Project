@@ -94,3 +94,11 @@ radarchart(data,
 
 shinyApp(ui = ui, server = server)
 ```
+
+> Feedback:
+-Make the instructions more clear for the inputs and the interpretation
+-Add legends of the game to the database
+
+
+
+
