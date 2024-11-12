@@ -99,6 +99,8 @@ shinyApp(ui = ui, server = server)
 -Make the instructions more clear for the inputs and the interpretation
 -Add legends of the game to the database
 
+> Try using squared distances instead of area and then also use least squares regression for the algo that finds the best match
+
 
 
 
