@@ -1,10 +1,3 @@
----
-title: "Untitled"
-format: html
-editor: visual
----
-
-```{r}
 library(shiny)
 library(fmsb)
 library(shinyWidgets)
@@ -53,19 +46,19 @@ server <- function(input, output) {
       Rebounding = c(100, 0, input$rebounding, input$rebounding2)
     )
     
-# Plot radar chart with solid lines and fill
-radarchart(data, 
-           axistype = 1, 
-           pcol = c("blue", "red"), 
-           pfcol = c(rgb(0.2, 0.5, 0.7, 0.5), rgb(0.8, 0.3, 0.3, 0.5)), 
-           plwd = 2, 
-           plty = c(1, 1),  # Solid lines for both polygons
-           lty = 1,          # Solid line type for axis lines
-           cglcol = "grey", 
-           cglty = 1, 
-           axislabcol = "black", 
-           caxislabels = seq(0, 100, 25), 
-           cglwd = 0.8)
+    # Plot radar chart with solid lines and fill
+    radarchart(data, 
+               axistype = 1, 
+               pcol = c("blue", "red"), 
+               pfcol = c(rgb(0.2, 0.5, 0.7, 0.5), rgb(0.8, 0.3, 0.3, 0.5)), 
+               plwd = 2, 
+               plty = c(1, 1),  # Solid lines for both polygons
+               lty = 1,          # Solid line type for axis lines
+               cglcol = "grey", 
+               cglty = 1, 
+               axislabcol = "black", 
+               caxislabels = seq(0, 100, 25), 
+               cglwd = 0.8)
   })
   
   output$overlapArea <- renderText({
@@ -93,8 +86,3 @@ radarchart(data,
 }
 
 shinyApp(ui = ui, server = server)
-```
-
-> Feedback: -Make the instructions more clear for the inputs and the interpretation -Add legends of the game to the database
-
-> Try using squared distances instead of area and then also use least squares regression for the algo that finds the best match
