@@ -1,0 +1,53 @@
+---
+title: "Model_NBA"
+author: "Eric Wentz"
+date: "2024-11-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(cluster)
+
+# Example dataset (replace this with your actual dataset)
+player_data <- read_csv('../data/Player_Stats.csv') %>%
+  filter(Minutes >= 528)
+
+
+# Normalize predictors for each category and calculate percentile scores
+normalize <- function(x) {
+  (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+}
+
+# Calculate category scores
+player_data <- player_data %>%
+  mutate(
+    Scoring = rowMeans(select(., PPG, Paint_PPG) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
+    Shooting = rowMeans(select(., att_3PT_pg, made_3PT_pg) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
+    Defense = rowMeans(select(., SPG, BPG) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
+    Rebounding = rowMeans(select(., DefRBD, OffRBD) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
+    Passing = rowMeans(select(., APG, ATO) %>% mutate(across(everything(), normalize)), na.rm = TRUE)
+  )
+
+# Select only the category scores for dissimilarity matrix
+category_scores <- player_data %>%
+  select(Scoring, Shooting, Defense, Rebounding, Passing)
+
+# Calculate the Gower dissimilarity matrix
+dissimilarity_matrix <- daisy(category_scores, metric = "gower")
+
+# Perform clustering (optional, e.g., PAM clustering)
+pam_model <- pam(dissimilarity_matrix, k = 5)
+
+# Add cluster assignments to the original dataset
+player_data$Cluster <- pam_model$clustering
+
+# View the updated dataset
+head(player_data)
+
+```
+
