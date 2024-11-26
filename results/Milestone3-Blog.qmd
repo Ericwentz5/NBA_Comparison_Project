@@ -5,6 +5,11 @@ format: html
 ---
 
 ```{r}
+library(dplyr)
+library(readr)
+library(cluster)
+
+
 all_stats_df <- read_csv('../data/Player_Stats.csv')
 
 Player_data <- all_stats_df %>% filter(Minutes >= 528)
@@ -62,7 +67,11 @@ cluster_names <- c(
   "5" = "Star Forwards"
 )
 
+
+
 mds_data$cluster_name <- cluster_names[mds_data$cluster]
+
+
 
 
 ggplot(mds_data, aes(x = V1, y = V2, color = cluster_name)) +
@@ -76,5 +85,13 @@ ggplot(mds_data, aes(x = V1, y = V2, color = cluster_name)) +
 
 
 ```
+-add better labels
+-player Names on outliers
+-Colors
+-Bakground
+-Why a group is where it is
+
+
+
 
 Initially I made a scatter plot that looked at how similar players were to eachother using every player as a data point. This was too messy and did not really explain anything so I developed 5 clusters. (This number may be changed but for now I think it is good). These groups or clusters represent a "type" of player. Defensive Centers are typically taller players who's main job is to rebound and protect the paint (players Rudy Gobert, Brook Lopez). Limited-minute guards are typically back-up guards who's statistics are limited due to the limited playing time they recieve (Players include Tre Jones, and payton Pritchard) . Playmaking guards are generally the leader of the team statistically and are star players at the guard position (Think of Anthony Edwards, Shai Gilgeous-Alexander, or Stephen Curry). Role-playing forwards are forwards who fly under the radar meaning they have limited stats but still play an integral part to the team (I think of Jerami Grant and Draymond Green). Finally, we have the stars of the league. Players who are large enough to be forwards but play like a guard causing matchup issues for every team they play. (All time greats like Kevin Durant and LeBron James). This plot helps us see where a player may fall into categories of players based on their stats, size, position relative to other players. Last time you mentioned why I filtered by players who played more than 528 minutes in the season. This is significant because this gave us a flat number of 300 players to look at, all of which spent the most time on the floor. 
