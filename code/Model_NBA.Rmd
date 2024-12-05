@@ -9,45 +9,140 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+
 ```{r}
 library(dplyr)
-library(cluster)
-
-# Example dataset (replace this with your actual dataset)
-player_data <- read_csv('../data/Player_Stats.csv') %>%
-  filter(Minutes >= 528)
 
 
-# Normalize predictors for each category and calculate percentile scores
-normalize <- function(x) {
-  (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
-}
-
-# Calculate category scores
-player_data <- player_data %>%
-  mutate(
-    Scoring = rowMeans(select(., PPG, Paint_PPG) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
-    Shooting = rowMeans(select(., att_3PT_pg, made_3PT_pg) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
-    Defense = rowMeans(select(., SPG, BPG) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
-    Rebounding = rowMeans(select(., DefRBD, OffRBD) %>% mutate(across(everything(), normalize)), na.rm = TRUE),
-    Passing = rowMeans(select(., APG, ATO) %>% mutate(across(everything(), normalize)), na.rm = TRUE)
-  )
-
-# Select only the category scores for dissimilarity matrix
-category_scores <- player_data %>%
-  select(Scoring, Shooting, Defense, Rebounding, Passing)
-
-# Calculate the Gower dissimilarity matrix
-dissimilarity_matrix <- daisy(category_scores, metric = "gower")
-
-# Perform clustering (optional, e.g., PAM clustering)
-pam_model <- pam(dissimilarity_matrix, k = 5)
-
-# Add cluster assignments to the original dataset
-player_data$Cluster <- pam_model$clustering
-
-# View the updated dataset
-head(player_data)
 
 ```
+
+
+```{r}
+all_stats_df <- read_csv('../data/Player_Stats.csv')
+
+Player_data <- all_stats_df %>% filter(Minutes >= 528)
+
+head(Player_data)
+
+
+```
+
+
+
+
+
+
+```{r}
+str(Player_data)
+
+Player_data$Team_Alias <- as.factor(Player_data$Team_Alias)
+
+
+Player_data$Player_Name <- as.factor(Player_data$Player_Name) 
+Player_data$Position <- as.factor(Player_data$Position)
+
+
+Player_data$Minutes <- as.numeric(Player_data$Minutes)
+Player_data$PPG <- as.numeric(Player_data$PPG)
+Player_data$APG <- as.numeric(Player_data$APG)
+Player_data$DefRBD <- as.numeric(Player_data$DefRBD)
+Player_data$OffRBD <- as.numeric(Player_data$OffRBD)
+Player_data$SPG <- as.numeric(Player_data$SPG)
+Player_data$BPG <- as.numeric(Player_data$BPG)
+Player_data$Paint_PPG <- as.numeric(Player_data$Paint_PPG)
+Player_data$att_3PT_pg <- as.numeric(Player_data$att_3PT_pg)
+Player_data$made_3PT_pg <- as.numeric(Player_data$made_3PT_pg)
+Player_data$ATO <- as.numeric(Player_data$ATO)
+
+library(cluster)
+
+Player_data_without_names <- Player_data[, !(names(Player_data) %in% c("Player_Name", "Team_Alias"))]
+
+
+dissimilarity_matrix <- daisy(Player_data_without_names, metric = "gower")
+
+```
+
+
+
+```{r}
+library(cluster)
+library(ggplot2)
+library(plotly)
+
+# Perform MDS
+mds_result <- cmdscale(dissimilarity_matrix, k = 2)
+mds_data <- as.data.frame(mds_result)
+colnames(mds_data) <- c("MDS1", "MDS2")
+mds_data$Player_Name <- Player_data$Player_Name
+
+# Perform hierarchical clustering
+clusters <- cutree(hclust(dissimilarity_matrix), k = 5)
+mds_data$cluster <- as.factor(clusters)
+
+# Manually assign "Superstar Big Men" cluster
+superstar_big_men <- c(
+  "Nikola Jokić", 
+  "Victor Wembanyama", 
+  "Domantas Sabonis", 
+  "Anthony Davis", 
+  "Giannis Antetokounmpo"
+)
+
+mds_data$cluster_name <- ifelse(
+  mds_data$Player_Name %in% superstar_big_men,
+  "Superstar Big Men",
+  as.character(clusters)
+)
+
+# Map cluster names
+cluster_names <- c(
+  "1" = "Role-Playing Forwards",
+  "2" = "Defensive Centers",
+  "3" = "Playmaking Guards",
+  "4" = "Limited-Minute Guards",
+  "5" = "Elite All-Around Forwards"
+)
+
+# Update cluster names for remaining players
+mds_data$cluster_name <- ifelse(
+  mds_data$cluster_name == "Superstar Big Men",
+  "Superstar Big Men",
+  cluster_names[mds_data$cluster_name]
+)
+
+# Create an interactive plot with Plotly
+interactive_plot <- plot_ly(
+  data = mds_data,
+  x = ~MDS1,
+  y = ~MDS2,
+  color = ~cluster_name,
+  colors = c(
+    "blue", "purple", "black", "orange", "red", "green"
+  ),  # Add color for "Superstar Big Men"
+  text = ~paste(
+    "Player Name:", Player_Name,
+    "<br>Cluster:", cluster_name
+  ),
+  type = "scatter",
+  mode = "markers",
+  marker = list(size = 8, opacity = 0.8)
+) %>%
+  layout(
+    title = "Interactive MDS Plot of Players by Cluster",
+    xaxis = list(title = "MDS Dimension 1"),
+    yaxis = list(title = "MDS Dimension 2"),
+    legend = list(title = list(text = "Cluster Names"))
+  )
+
+# Show the interactive plot
+interactive_plot
+
+
+```
+
+
+
 
