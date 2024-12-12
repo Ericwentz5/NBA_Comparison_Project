@@ -13,20 +13,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(dplyr)
-
-
-
 ```
 
 
 ```{r}
+library(tidyverse)
+library(readr)
+
+
 all_stats_df <- read_csv('../data/Player_Stats.csv')
 
 Player_data <- all_stats_df %>% filter(Minutes >= 528)
 
 head(Player_data)
-
-
 ```
 
 
@@ -35,32 +34,32 @@ head(Player_data)
 
 
 ```{r}
+# Inspect the structure of Player_data
 str(Player_data)
 
-Player_data$Team_Alias <- as.factor(Player_data$Team_Alias)
+# Define columns that should be converted to specific types
+factor_columns <- c("Team_Alias", "Player_Name", "Position")
+numeric_columns <- c("Minutes", "PPG", "APG", "DefRBD", "OffRBD", "SPG", "BPG", 
+                     "Paint_PPG", "att_3PT_pg", "made_3PT_pg", "ATO")
 
+# Loop to convert columns to factors
+for (col in factor_columns) {
+  Player_data[[col]] <- as.factor(Player_data[[col]])
+}
 
-Player_data$Player_Name <- as.factor(Player_data$Player_Name) 
-Player_data$Position <- as.factor(Player_data$Position)
+# Loop to convert columns to numeric
+for (col in numeric_columns) {
+  Player_data[[col]] <- as.numeric(Player_data[[col]])
+}
 
+# Check the updated structure of Player_data
+str(Player_data)
 
-Player_data$Minutes <- as.numeric(Player_data$Minutes)
-Player_data$PPG <- as.numeric(Player_data$PPG)
-Player_data$APG <- as.numeric(Player_data$APG)
-Player_data$DefRBD <- as.numeric(Player_data$DefRBD)
-Player_data$OffRBD <- as.numeric(Player_data$OffRBD)
-Player_data$SPG <- as.numeric(Player_data$SPG)
-Player_data$BPG <- as.numeric(Player_data$BPG)
-Player_data$Paint_PPG <- as.numeric(Player_data$Paint_PPG)
-Player_data$att_3PT_pg <- as.numeric(Player_data$att_3PT_pg)
-Player_data$made_3PT_pg <- as.numeric(Player_data$made_3PT_pg)
-Player_data$ATO <- as.numeric(Player_data$ATO)
-
-library(cluster)
-
+# Exclude Player_Name and Team_Alias for clustering
 Player_data_without_names <- Player_data[, !(names(Player_data) %in% c("Player_Name", "Team_Alias"))]
 
-
+# Create a Gower's dissimilarity matrix
+library(cluster)
 dissimilarity_matrix <- daisy(Player_data_without_names, metric = "gower")
 
 ```
@@ -72,13 +71,13 @@ library(cluster)
 library(ggplot2)
 library(plotly)
 
-# Perform MDS
+
 mds_result <- cmdscale(dissimilarity_matrix, k = 2)
 mds_data <- as.data.frame(mds_result)
 colnames(mds_data) <- c("MDS1", "MDS2")
 mds_data$Player_Name <- Player_data$Player_Name
 
-# Perform hierarchical clustering
+
 clusters <- cutree(hclust(dissimilarity_matrix), k = 5)
 mds_data$cluster <- as.factor(clusters)
 
@@ -144,5 +143,114 @@ interactive_plot
 ```
 
 
+```{r}
+# Ensure necessary libraries are loaded
+library(cluster)
+library(ggplot2)
+library(plotly)
+library(caret)
+
+# Define a function to convert percentiles into actual stats
+convert_percentiles_to_stats <- function(percentiles, data, stats_columns) {
+  # Convert percentiles to actual stats using quantiles
+  actual_stats <- sapply(names(percentiles), function(stat) {
+    if (stat %in% stats_columns) {
+      quantile(data[[stat]], probs = percentiles[stat] / 100, na.rm = TRUE)
+    } else {
+      stop(paste("Stat", stat, "not found in the dataset."))
+    }
+  })
+  return(actual_stats)
+}
+
+# Define stats columns
+stats_columns <- c("Minutes", "PPG", "APG", "DefRBD", "OffRBD", "SPG", "BPG", 
+                   "Paint_PPG", "att_3PT_pg", "made_3PT_pg", "ATO")
+
+# Example percentiles input for a new player (including position)
+new_player_percentiles <- c(
+  PPG = 90,          # 90th percentile for scoring
+  APG = 75,          # 75th percentile for passing
+  DefRBD = 50,       # 50th percentile for defense
+  OffRBD = 60,       # 60th percentile for rebounding
+  att_3PT_pg = 80    # 80th percentile for shooting
+)
+
+new_player_position <- "G"  # Example position for the new player
+
+# Convert percentiles to actual stats
+new_player_stats <- convert_percentiles_to_stats(new_player_percentiles, Player_data, stats_columns)
+
+# Ensure the levels of Position in newdata match the levels in the original dataset
+new_player_position <- factor(new_player_position, levels = levels(Player_data$Position))
+
+# Create dummy variables for Position using caret's dummyVars
+position_encoded <- dummyVars(~ Position, data = Player_data)
+position_matrix <- predict(position_encoded, newdata = data.frame(Position = new_player_position))
+position_matrix <- as.data.frame(position_matrix)
+
+# Combine stats and position encoding for the new player
+new_player_point <- cbind(as.data.frame(t(new_player_stats)), position_matrix)
+
+# Add missing columns with default values for consistency
+missing_columns <- setdiff(names(Player_data_without_names), names(new_player_point))
+for (col in missing_columns) {
+  new_player_point[[col]] <- 0
+}
+
+# Ensure the column order matches the dataset
+new_player_point <- new_player_point[, names(Player_data_without_names)]
+
+# Compute the Gower dissimilarity between the new player and all existing players
+new_point_dissimilarity <- daisy(rbind(Player_data_without_names, new_player_point), metric = "gower")
+
+# Use the existing MDS transformation to project the new player
+new_player_mds <- cmdscale(as.dist(new_point_dissimilarity), k = 2)
+new_player_mds_data <- as.data.frame(new_player_mds[nrow(new_player_mds), , drop = FALSE])
+colnames(new_player_mds_data) <- c("MDS1", "MDS2")
+
+# Add the player's name and cluster (default to "New Player")
+new_player_mds_data$Player_Name <- "New Player"
+new_player_mds_data$cluster_name <- "New Player"
+
+missing_columns_in_new <- setdiff(names(mds_data), names(new_player_mds_data))
+for (col in missing_columns_in_new) {
+  new_player_mds_data[[col]] <- NA  # Add missing columns with NA
+}
+
+# Reorder columns in new_player_mds_data to match mds_data
+new_player_mds_data <- new_player_mds_data[, names(mds_data)]
+# Add the new player to the existing MDS data
+combined_mds_data <- rbind(mds_data, new_player_mds_data)
+
+# Create an interactive plot with Plotly
+interactive_plot_with_new <- plot_ly(
+  data = combined_mds_data,
+  x = ~MDS1,
+  y = ~MDS2,
+  color = ~cluster_name,
+  colors = c(
+    "blue", "purple", "black", "orange", "red", "green", "pink"  # Color for new player
+  ),
+  text = ~paste(
+    "Player Name:", Player_Name,
+    "<br>Cluster:", cluster_name
+  ),
+  type = "scatter",
+  mode = "markers",
+  marker = list(size = 8, opacity = 0.8)
+) %>%
+  layout(
+    title = "Interactive MDS Plot with New Player",
+    xaxis = list(title = "MDS Dimension 1"),
+    yaxis = list(title = "MDS Dimension 2"),
+    legend = list(title = list(text = "Cluster Names"))
+  )
+
+# Show the updated plot
+interactive_plot_with_new
+
+
+```
 
 
