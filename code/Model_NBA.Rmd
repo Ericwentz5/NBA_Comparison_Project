@@ -100,9 +100,9 @@ mds_data$cluster_name <- ifelse(
 cluster_names <- c(
   "1" = "Role-Playing Forwards",
   "2" = "Defensive Centers",
-  "3" = "Playmaking Guards",
+  "3" = "Playmaking Lead Guards",
   "4" = "Limited-Minute Guards",
-  "5" = "Elite All-Around Forwards"
+  "5" = "Elite All-Around Wings"
 )
 
 # Update cluster names for remaining players
