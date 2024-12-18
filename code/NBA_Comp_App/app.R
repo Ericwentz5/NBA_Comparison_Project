@@ -30,7 +30,7 @@ find_closest_players <- function(input_stats, df) {
     arrange(distance) %>%
     slice(1:3) %>%
     mutate(distance = round(distance, 2)) %>%
-    select(Player_Name, scoring, shooting, passing, defense, rebounding, distance)
+    dplyr::select(Player_Name, scoring, shooting, passing, defense, rebounding, distance)
   
   return(top_players)
 }
@@ -66,7 +66,7 @@ ui <- fluidPage(
                  textOutput("overlapPercentage")
                ),
                mainPanel(
-                 plotOutput("radarPlot", width = "800px", height = "800px")
+                 plotOutput("radarPlot", width = "600px", height = "600px")
                )
              )
     ),
@@ -84,13 +84,15 @@ ui <- fluidPage(
                  sliderInput("percentile_passing", "Passing Percentile", min = 0, max = 100, value = 50),
                  sliderInput("percentile_defense", "Defense Percentile", min = 0, max = 100, value = 50),
                  sliderInput("percentile_rebounding", "Rebounding Percentile", min = 0, max = 100, value = 50),
-                 sliderInput("percentile_scoring", "Scoring Percentile", min = 0, max = 100, value = 50)
+                 sliderInput("percentile_scoring", "Scoring Percentile", min = 0, max = 100, value = 50),
+                 actionButton(inputId = "update_plot", label = "Save Hypothetical Player Stats"),
+                 actionButton("update_plot", "Update Plot")
                ),
                mainPanel(
                  h4("Hypothetical Player Stats"),
                  tableOutput("hypotheticalStats"),
                  h4("Dissimilarity Matrix Placement"),
-                 plotOutput("hypotheticalPlacementPlot")
+                 plotlyOutput("interactiveMDSPlot", width = "800px", height = "600px")  # Adjust dimensions here
                )
              )
     )
@@ -265,7 +267,10 @@ server <- function(input, output) {
     
     ### TAB 3: HYPOTHETICAL PLAYER ###
     
-    # Calculate hypothetical player stats from percentiles
+    
+    static_data <- read.csv("~/Desktop/COMP212/Project212/NBA_Comparison_Project/data/my_data.csv")
+    
+    # Reactive function for hypothetical player stats
     hypothetical_player <- reactive({
       percentiles <- list(
         scoring = input$percentile_scoring,
@@ -274,76 +279,79 @@ server <- function(input, output) {
         defense = input$percentile_defense,
         rebounding = input$percentile_rebounding
       )
-      reverse_stats(percentiles, stat_ranges)
+      reverse_stats(percentiles, stat_ranges)  # Convert percentiles to stats
     })
     
     
-
+    
+    
+    actionButton("update_plot", "Update Plot")
+    
+    observe({
+      print("Button clicked")
+      print(input$update_plot)
+    })
+    
+    observeEvent(input$update_plot, {
+      print("Button clicked: Saving Hypothetical Player Stats")
+      
+      # Get hypothetical player stats (a named vector)
+      new_player_stats <- hypothetical_player()
+      
+      # Convert stats to a long-format data frame
+      new_player <- as.data.frame(t(new_player_stats))
+      new_player <- tibble::rownames_to_column(new_player, "Statistic")  # Move row names (stat names) to a column
+      colnames(new_player)[2] <- "V1"  # Rename the second column to V1
+      
+      # Add player metadata (if needed)
+      new_player$Player_Name <- "Hypothetical Player"
+      new_player$cluster_name <- "Hypothetical Player"
+      
+      print("New Player Stats in Long Format:")
+      print(new_player)
+      
+      # Save new player stats to a CSV file
+      write.csv(new_player, 
+                "~/Desktop/COMP212/Project212/NBA_Comparison_Project/data/new_player_stats.csv",
+                row.names = FALSE)
+      
+      print("Hypothetical player stats saved to 'new_player_stats.csv'.")
+    })
+    
+    
+    
     # Display hypothetical player stats
     output$hypotheticalStats <- renderTable({
       hypothetical_player()
     })
     
-    # Reactive function to compute new MDS data with the hypothetical player
-    new_player_mds_data <- eventReactive(input$update_plot, {
-      new_stats <- hypothetical_player()
-      
-      # Add position encoding
-      new_position <- factor(input$new_player_position, levels = levels(Player_data$Position))
-      position_encoded <- dummyVars(~ Position, data = Player_data)
-      position_matrix <- predict(position_encoded, newdata = data.frame(Position = new_position))
-      position_matrix <- as.data.frame(position_matrix)
-      
-      # Combine stats and position encoding
-      new_player_point <- cbind(as.data.frame(t(new_stats)), position_matrix)
-      
-      # Add missing columns for consistency
-      missing_columns <- setdiff(names(Player_data_without_names), names(new_player_point))
-      for (col in missing_columns) {
-        new_player_point[[col]] <- 0
-      }
-      new_player_point <- new_player_point[, names(Player_data_without_names)]
-      
-      # Compute Gower dissimilarity and project the new player
-      new_point_dissimilarity <- daisy(rbind(Player_data_without_names, new_player_point), metric = "gower")
-      new_mds_result <- cmdscale(as.dist(new_point_dissimilarity), k = 2)
-      new_player_mds <- as.data.frame(new_mds_result[nrow(new_mds_result), , drop = FALSE])
-      colnames(new_player_mds) <- c("MDS1", "MDS2")
-      new_player_mds$Player_Name <- "New Player"
-      new_player_mds$cluster_name <- "New Player"
-      
-      # Combine with existing MDS data
-      rbind(mds_data, new_player_mds)
-    })
-    
-    # Render the interactive MDS plot
+    view(static_data)
+
     output$interactiveMDSPlot <- renderPlotly({
-      combined_mds_data <- new_player_mds_data()
-      
-      
-      print(head(combined_mds_data))
-      print(str(combined_mds_data))
-      
+      print("Rendering Plotly with Static Data")
       
       plot_ly(
-        data = combined_mds_data,
+        data = static_data,
         x = ~MDS1,
         y = ~MDS2,
-        color = ~cluster_name,
-        colors = c("blue", "purple", "black", "orange", "red", "green", "pink"),
-        text = ~paste("Player Name:", Player_Name, "<br>Cluster:", cluster_name),
         type = "scatter",
         mode = "markers",
+        color = ~cluster_name,  # Assign colors based on the cluster
+        text = ~paste("Player Name:", Player_Name, "<br>Cluster:", cluster_name),
         marker = list(size = 8, opacity = 0.8)
       ) %>%
         layout(
-          title = "Interactive MDS Plot with New Player",
+          title = "Interactive MDS Plot (Static Data)",
           xaxis = list(title = "MDS Dimension 1"),
           yaxis = list(title = "MDS Dimension 2"),
-          legend = list(title = list(text = "Cluster Names"))
+          legend = list(title = list(text = "Clusters"))  # Add legend title
         )
     })
+    
   }
+
+
+
 
 
 shinyApp(ui = ui, server = server)

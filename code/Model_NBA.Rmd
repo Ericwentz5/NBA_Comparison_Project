@@ -96,6 +96,8 @@ mds_data$cluster_name <- ifelse(
   as.character(clusters)
 )
 
+
+
 # Map cluster names
 cluster_names <- c(
   "1" = "Role-Playing Forwards",
@@ -221,7 +223,13 @@ for (col in missing_columns_in_new) {
 # Reorder columns in new_player_mds_data to match mds_data
 new_player_mds_data <- new_player_mds_data[, names(mds_data)]
 # Add the new player to the existing MDS data
-combined_mds_data <- rbind(mds_data, new_player_mds_data)
+combined_mds_data <- rbind(mds_data, new_player_mds_data) %>% filter(Player_Name != "New Player")
+
+
+print(combined_mds_data)
+
+
+
 
 # Create an interactive plot with Plotly
 interactive_plot_with_new <- plot_ly(
@@ -251,6 +259,40 @@ interactive_plot_with_new <- plot_ly(
 interactive_plot_with_new
 
 
+write.csv(combined_mds_data, file = "~/Desktop/COMP212/Project212/NBA_Comparison_Project/data/my_data.csv", row.names = FALSE)
+
+```
+```{r}
+data_path <- "~/Desktop/COMP212/Project212/NBA_Comparison_Project/data/new_player_stats.csv"  # Replace with your file path
+player_data <- read.csv(data_path)
+
+print(colnames(player_data))
+
+library(janitor)
+player_data <- player_data %>% clean_names()
+print(colnames(player_data))
+
+# Step 2: Filter for the hypothetical player's statistics
+hypothetical_player_stats <- player_data %>%
+  filter(Player_Name == "Hypothetical Player") %>%  # Filter only rows for the hypothetical player
+  select(Statistic, V1) %>%                         # Keep only Statistic and V1 columns
+  pivot_wider(names_from = Statistic, values_from = V1)  # Pivot to wide format
+
+# Step 3: Create the dissimilarity matrix
+# (If only the hypothetical player is in the data, it’s just comparing itself)
+dissimilarity_matrix <- daisy(hypothetical_player_stats, metric = "gower")
+
+# Step 4: Perform MDS
+mds_result <- cmdscale(dissimilarity_matrix, k = 2)
+mds_data <- as.data.frame(mds_result)
+colnames(mds_data) <- c("MDS1", "MDS2")
+
+# Step 5: Extract the MDS1 and MDS2 values for the hypothetical player
+# Since we only calculate MDS for the hypothetical player, there's just one row
+hypothetical_mds <- mds_data[1, , drop = FALSE]
+
+# Print the MDS1 and MDS2 coordinates
+print(hypothetical_mds)
 ```
 
 
